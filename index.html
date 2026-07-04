@@ -44,8 +44,47 @@ lista.appendChild(c);
 }catch(e){lista.innerHTML='<div class=erro>Erro ao carregar.</div>'}
 }
 function compartilhar(p){
-const t=`🎰 ${p.loteria}\n🐾 ${p.animal}\nGrupo ${p.grupo}\n\n${p.milhares.map(x=>x.milhar).join("\n")}\n\n🌐 www.zepitaco.com`;
-open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
+
+  const agora = new Date();
+
+  const data = agora.toLocaleDateString('pt-BR');
+
+  const hora = agora.toLocaleTimeString('pt-BR',{
+    hour:'2-digit',
+    minute:'2-digit'
+  });
+
+  const listaMilhares = p.milhares
+    .map(m => m.milhar)
+    .join('\n');
+
+  const texto = `📅 Data: ${data}
+
+🕒 Horário: ${hora}
+
+🎰 Loteria: ${p.loteria}
+
+⏳ Próxima Extração: ${p.horario}
+
+🐾 Animal: ${p.animal}
+
+🎯 Grupo: ${p.grupo}
+
+🔥 PALPITES
+----------------------------------
+
+💎 Milhar:
+
+${listaMilhares}
+
+🍀 Boa sorte!
+
+🌐 www.zepitaco.com`;
+
+  const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+
+  window.open(url,'_blank');
+
 }
 function copiarMilhar(p){navigator.clipboard.writeText(p.milhares.map(x=>x.milhar).join(', '));mostrar('Milhares copiadas!')}
 function mostrar(t){let d=document.createElement('div');d.className='mensagem-copy';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.classList.add('mostrar'),50);setTimeout(()=>{d.remove()},2500)}
