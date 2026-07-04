@@ -43,7 +43,49 @@ const API_URL='https://script.google.com/macros/s/AKfycbz5IvvaLjGuhvBD6xHAwuTsVB
 const lista=document.getElementById('lista-palpite');
 async function carregarPalpites(){try{const r=await fetch(API_URL);const j=await r.json();lista.innerHTML='';
 (j.data||[]).forEach(p=>{const c=document.createElement('div');c.className='card';c.innerHTML=`<div class="top-card"><span>🐾 ${p.animal}</span><span>Grupo ${p.grupo}</span></div><div><b>Loteria:</b> ${p.loteria}<br><b>Próximo:</b> ${p.horario}</div><div class="lista-milhares">${p.milhares.map((m,i)=>`<div class="milhar-card"><div class="milhar-numero">${m.milhar}</div><div>${i+1}º<br>Dz ${m.dezena}</div></div>`).join('')}</div><div class="botoes"><button onclick='compartilhar(${JSON.stringify(p)})'>📲 Compartilhar</button><button onclick='copiarMilhar(${JSON.stringify(p)})'>📋 Copiar</button></div>`;lista.appendChild(c);});}catch(e){lista.innerHTML='<div class="erro">Erro ao carregar.</div>';}}
-function compartilhar(p){const a=new Date();const t=`📅 ${a.toLocaleDateString('pt-BR')}\n🕒 ${a.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}\n🎰 ${p.loteria}\n${p.milhares.map(m=>m.milhar).join('\n')}\n🌐 palpite.bancabrasileira.site`;window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');}
+function compartilhar(p){
+
+  const agora = new Date();
+
+  const data = agora.toLocaleDateString('pt-BR');
+
+  const hora = agora.toLocaleTimeString('pt-BR',{
+    hour:'2-digit',
+    minute:'2-digit'
+  });
+
+  const listaMilhares = p.milhares
+    .map(m => m.milhar)
+    .join('\n');
+
+  const texto = `📅 Data: ${data}
+
+🕒 Horário: ${hora}
+
+🎰 Loteria: ${p.loteria}
+
+⏳ Próxima Extração: ${p.horario}
+
+🐾 Animal: ${p.animal}
+
+🎯 Grupo: ${p.grupo}
+
+🔥 PALPITES
+----------------------------------
+
+💎 Milhar:
+
+${listaMilhares}
+
+🍀 Boa sorte!
+
+🌐 palpite.bancabrasileira.site`;
+
+  const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+
+  window.open(url,'_blank');
+
+}
 function copiarMilhar(p){navigator.clipboard.writeText(p.milhares.map(x=>x.milhar).join(', '));mostrar('Milhares copiadas!')}
 function mostrar(t){let d=document.createElement('div');d.className='mensagem-copy';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.classList.add('mostrar'),50);setTimeout(()=>d.remove(),2500);}
 function relogio(){document.getElementById('data-hora').textContent='📅 '+new Date().toLocaleString('pt-BR')}
