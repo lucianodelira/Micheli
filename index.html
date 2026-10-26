@@ -268,6 +268,86 @@
     0%, 100% { transform: translateY(0) rotate(0deg); }
     50% { transform: translateY(-18px) rotate(8deg); }
   }
+
+  /* ===== NOVAS SEÇÕES (Gerar Palpites + Puxadas) ===== */
+  .ferramentas {
+    background: #fffef5;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    margin-bottom: 20px;
+    border: 3px solid #e8d48b;
+  }
+
+  .ferramentas h2 {
+    color: #2d6a1e;
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .ferramentas label {
+    display: block;
+    font-weight: 600;
+    margin: 10px 0 6px;
+    color: #3d4a2a;
+  }
+
+  .ferramentas select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid #d4c48a;
+    background: #fff9e6;
+    font-size: 1rem;
+    font-family: inherit;
+    margin-bottom: 10px;
+  }
+
+  .ferramentas button {
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .ferramentas button:disabled {
+    background: #a0a0a0;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .resultado-box {
+    margin-top: 14px;
+    padding: 14px;
+    background: #f0fdf4;
+    border-radius: 12px;
+    border: 2px dashed #86efac;
+  }
+
+  .resultado-box h3 {
+    color: #166534;
+    margin-bottom: 10px;
+  }
+
+  .resultado-box ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .resultado-box li {
+    padding: 6px 0;
+    border-bottom: 1px solid #d1fae5;
+    font-size: 1.05rem;
+  }
+
+  .resultado-box li:last-child {
+    border-bottom: none;
+  }
+
+  .btn-whats {
+    background: linear-gradient(180deg, #25d366, #128c7e) !important;
+    box-shadow: 0 4px 0 #0b6b4f !important;
+    margin-top: 12px;
+  }
 </style>
 </head>
 <body>
@@ -291,6 +371,39 @@
   <div class="loading">🌾 Carregando palpites da fazenda...</div>
 </main>
 
+<!-- ===================== NOVAS FUNÇÕES ADICIONADAS ===================== -->
+<div style="max-width:920px;margin:0 auto;padding:0 12px 20px;">
+
+  <!-- GERAR PALPITES -->
+  <div class="ferramentas">
+    <h2>🎲 Gerar Palpites</h2>
+    <label for="bancaSelect">Escolha a Banca:</label>
+    <select id="bancaSelect">
+      <option value="">Selecione uma banca</option>
+      <option value="PT Rio">PT Rio</option>
+      <option value="Look GO">Look GO</option>
+      <option value="Nacional">Nacional</option>
+      <option value="Maluca BA">Maluca BA</option>
+      <option value="Lotep">Lotep</option>
+    </select>
+    <button id="gerarPalpites" disabled>Gerar Palpites</button>
+    <div id="palpiteOutput" class="resultado-box" style="display:none;"></div>
+  </div>
+
+  <!-- CONSULTAR PUXADAS -->
+  <div class="ferramentas">
+    <h2>🔗 Consultar Puxadas</h2>
+    <label for="animalSelect">Escolha um Animal:</label>
+    <select id="animalSelect">
+      <option value="">Selecione um animal</option>
+    </select>
+    <button id="verPuxada" style="display:none;">Ver Puxadas</button>
+    <div id="puxadaResult" class="resultado-box" style="display:none;"></div>
+  </div>
+
+</div>
+<!-- ===================== FIM DAS NOVAS FUNÇÕES ===================== -->
+
 <footer>
   <button>Suporte</button>
   <button>Compartilhar</button>
@@ -298,14 +411,14 @@
   <button class="btn-jogar" onclick="window.open('https://app.bancabrasileira.com.br/pr/uVZ2pAvP','_blank')">🎰 JOGAR</button>
 </footer>
 
-<!-- Música de fazenda (ambiente rural) -->
+<!-- Música de fazenda -->
 <audio id="musicaFazenda" loop>
   <source src="https://cdn.pixabay.com/download/audio/2022/03/24/audio_4e0e6b5b5a.mp3?filename=farm-ambient-110177.mp3" type="audio/mpeg">
-  <!-- Fallback caso o link acima falhe -->
   <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
 </audio>
 
 <script>
+/* ===================== CÓDIGO ORIGINAL (NÃO ALTERADO) ===================== */
 if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js');}
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
@@ -324,13 +437,8 @@ async function carregarPalpites(){try{const r=await fetch(API_URL);const j=await
 function compartilhar(p){
   const agora = new Date();
   const data = agora.toLocaleDateString('pt-BR');
-  const hora = agora.toLocaleTimeString('pt-BR',{
-    hour:'2-digit',
-    minute:'2-digit'
-  });
-  const listaMilhares = p.milhares
-    .map(m => m.milhar)
-    .join('\n');
+  const hora = agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const listaMilhares = p.milhares.map(m => m.milhar).join('\n');
   const texto = `📅 Data: ${data}
 🕒 Horário: ${hora}
 🎰 Loteria: ${p.loteria}
@@ -364,7 +472,7 @@ btnMusica.addEventListener('click', () => {
     btnMusica.classList.add('muted');
     musicaLigada = false;
   } else {
-    audio.volume = 0.35; // volume baixo e agradável
+    audio.volume = 0.35;
     audio.play().catch(() => {});
     btnMusica.textContent = '🎵';
     btnMusica.classList.remove('muted');
@@ -372,7 +480,6 @@ btnMusica.addEventListener('click', () => {
   }
 });
 
-// Tenta iniciar a música depois da primeira interação do usuário
 document.body.addEventListener('click', function iniciarMusica() {
   if (!musicaLigada) {
     audio.volume = 0.35;
@@ -384,6 +491,254 @@ document.body.addEventListener('click', function iniciarMusica() {
   }
   document.body.removeEventListener('click', iniciarMusica);
 }, { once: true });
+
+/* ===================== NOVAS FUNÇÕES (Gerar Palpites + Puxadas) ===================== */
+const animals = [
+  { name: 'Avestruz', emoji: '🦢', group: 1, tens: ['01', '02', '03', '04'] },
+  { name: 'Águia', emoji: '🦅', group: 2, tens: ['05', '06', '07', '08'] },
+  { name: 'Burro', emoji: '🦙', group: 3, tens: ['09', '10', '11', '12'] },
+  { name: 'Borboleta', emoji: '🦋', group: 4, tens: ['13', '14', '15', '16'] },
+  { name: 'Cachorro', emoji: '🐶', group: 5, tens: ['17', '18', '19', '20'] },
+  { name: 'Cabra', emoji: '🐐', group: 6, tens: ['21', '22', '23', '24'] },
+  { name: 'Carneiro', emoji: '🐏', group: 7, tens: ['25', '26', '27', '28'] },
+  { name: 'Camelo', emoji: '🐪', group: 8, tens: ['29', '30', '31', '32'] },
+  { name: 'Cobra', emoji: '🐍', group: 9, tens: ['33', '34', '35', '36'] },
+  { name: 'Coelho', emoji: '🐰', group: 10, tens: ['37', '38', '39', '40'] },
+  { name: 'Cavalo', emoji: '🐎', group: 11, tens: ['41', '42', '43', '44'] },
+  { name: 'Elefante', emoji: '🐘', group: 12, tens: ['45', '46', '47', '48'] },
+  { name: 'Galo', emoji: '🐓', group: 13, tens: ['49', '50', '51', '52'] },
+  { name: 'Gato', emoji: '🐱', group: 14, tens: ['53', '54', '55', '56'] },
+  { name: 'Jacaré', emoji: '🐊', group: 15, tens: ['57', '58', '59', '60'] },
+  { name: 'Leão', emoji: '🦁', group: 16, tens: ['61', '62', '63', '64'] },
+  { name: 'Macaco', emoji: '🐒', group: 17, tens: ['65', '66', '67', '68'] },
+  { name: 'Porco', emoji: '🐷', group: 18, tens: ['69', '70', '71', '72'] },
+  { name: 'Pavão', emoji: '🦚', group: 19, tens: ['73', '74', '75', '76'] },
+  { name: 'Peru', emoji: '🦃', group: 20, tens: ['77', '78', '79', '80'] },
+  { name: 'Touro', emoji: '🐂', group: 21, tens: ['81', '82', '83', '84'] },
+  { name: 'Tigre', emoji: '🐅', group: 22, tens: ['85', '86', '87', '88'] },
+  { name: 'Urso', emoji: '🐻', group: 23, tens: ['89', '90', '91', '92'] },
+  { name: 'Veado', emoji: '🦌', group: 24, tens: ['93', '94', '95', '96'] },
+  { name: 'Vaca', emoji: '🐄', group: 25, tens: ['97', '98', '99', '00'] }
+];
+
+const bancas = {
+  'PT Rio': {
+    schedules: {
+      'Domingo': ['09:30', '11:30', '14:30', '16:30'],
+      'Segunda': ['09:30', '11:30', '14:30', '16:30', '18:30', '21:30'],
+      'Terça': ['09:30', '11:30', '14:30', '16:30', '18:30', '21:30'],
+      'Quarta': ['09:30', '11:30', '14:30', '16:30', '19:00', '21:30'],
+      'Quinta': ['09:30', '11:30', '14:30', '16:30', '18:30', '21:30'],
+      'Sexta': ['09:30', '11:30', '14:30', '16:30', '18:30', '21:30'],
+      'Sábado': ['09:30', '11:30', '14:30', '16:30', '19:00', '21:30']
+    }
+  },
+  'Look GO': {
+    schedules: {
+      'Domingo': ['09:00', '11:00', '14:00', '16:00', '18:00', '21:00'],
+      'Segunda': ['09:00', '11:00', '14:00', '16:00', '18:00', '21:00'],
+      'Terça': ['09:00', '11:00', '14:00', '16:00', '18:00', '21:00'],
+      'Quarta': ['09:00', '11:00', '14:00', '16:00', '18:00', '19:00', '21:00'],
+      'Quinta': ['09:00', '11:00', '14:00', '16:00', '18:00', '21:00'],
+      'Sexta': ['09:00', '11:00', '14:00', '16:00', '18:00', '21:00'],
+      'Sábado': ['09:00', '11:00', '14:00', '16:00', '18:00', '19:00', '21:00']
+    }
+  },
+  'Nacional': {
+    schedules: {
+      'Domingo': ['02:00', '08:00', '10:00', '12:00', '15:00', '17:00', '20:00', '23:00'],
+      'Segunda': ['02:00', '08:00', '10:00', '12:00', '15:00', '17:00', '20:00', '23:00'],
+      'Terça': ['02:00', '08:00', '10:00', '12:00', '15:00', '17:00', '20:00', '23:00'],
+      'Quarta': ['02:00', '08:00', '10:00', '12:00', '15:00', '17:00', '20:00', '23:00'],
+      'Quinta': ['02:00', '08:00', '10:00', '12:00', '15:00', '17:00', '20:00', '23:00'],
+      'Sexta': ['02:00', '08:00', '10:00', '12:00', '15:00', '17:00', '20:00', '23:00'],
+      'Sábado': ['02:00', '08:00', '10:00', '12:00', '15:00', '17:00', '20:00', '23:00']
+    }
+  },
+  'Maluca BA': {
+    schedules: {
+      'Domingo': ['10:00', '12:00', '15:00'],
+      'Segunda': ['10:00', '12:00', '15:00', '19:00', '21:00'],
+      'Terça': ['10:00', '12:00', '15:00', '19:00', '21:00'],
+      'Quarta': ['10:00', '12:00', '15:00', '19:00', '21:00'],
+      'Quinta': ['10:00', '12:00', '15:00', '19:00', '21:00'],
+      'Sexta': ['10:00', '12:00', '15:00', '19:00', '21:00'],
+      'Sábado': ['10:00', '12:00', '15:00', '19:00', '21:00']
+    }
+  },
+  'Lotep': {
+    schedules: {
+      'Domingo': ['10:45', '12:45'],
+      'Segunda': ['10:45', '12:45', '15:45', '18:00'],
+      'Terça': ['10:45', '12:45', '15:45', '18:00'],
+      'Quarta': ['10:45', '12:45', '15:45', '18:00', '19:00'],
+      'Quinta': ['10:45', '12:45', '15:45', '18:00'],
+      'Sexta': ['10:45', '12:45', '15:45', '18:00'],
+      'Sábado': ['10:45', '12:45', '15:45', '18:00', '19:00']
+    }
+  }
+};
+
+const puxadas = {
+  'Avestruz': ['Pavão', 'Águia', 'Galo'],
+  'Águia': ['Avestruz', 'Galo', 'Pavão'],
+  'Burro': ['Cavalo', 'Vaca', 'Touro'],
+  'Borboleta': ['Gato', 'Cobra', 'Coelho'],
+  'Cachorro': ['Galo', 'Camelo', 'Macaco'],
+  'Cabra': ['Vaca', 'Carneiro', 'Touro'],
+  'Carneiro': ['Cabra', 'Vaca', 'Touro'],
+  'Camelo': ['Cachorro', 'Urso', 'Avestruz'],
+  'Cobra': ['Borboleta', 'Jacaré', 'Gato'],
+  'Coelho': ['Borboleta', 'Gato', 'Cobra'],
+  'Cavalo': ['Burro', 'Vaca', 'Carneiro'],
+  'Elefante': ['Urso', 'Touro', 'Leão'],
+  'Galo': ['Avestruz', 'Águia', 'Pavão'],
+  'Gato': ['Borboleta', 'Cobra', 'Coelho'],
+  'Jacaré': ['Cobra', 'Porco', 'Borboleta'],
+  'Leão': ['Elefante', 'Tigre', 'Urso'],
+  'Macaco': ['Cachorro', 'Gato', 'Leão'],
+  'Porco': ['Jacaré', 'Vaca', 'Cabra'],
+  'Pavão': ['Avestruz', 'Galo', 'Águia'],
+  'Peru': ['Galo', 'Pavão', 'Avestruz'],
+  'Touro': ['Carneiro', 'Vaca', 'Cabra'],
+  'Tigre': ['Leão', 'Porco', 'Elefante'],
+  'Urso': ['Camelo', 'Elefante', 'Leão'],
+  'Veado': ['Coelho', 'Borboleta', 'Gato'],
+  'Vaca': ['Cabra', 'Carneiro', 'Touro']
+};
+
+function generateMilhar() {
+  return Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+}
+
+function getAnimalByMilhar(milhar) {
+  const tens = milhar.slice(-2);
+  return animals.find(animal => animal.tens.includes(tens)) || animals[0];
+}
+
+function getNextDrawTime(banca, now) {
+  if (!bancas[banca]) return null;
+  const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  const today = days[now.getDay()];
+  const schedules = bancas[banca].schedules[today];
+  if (!schedules || schedules.length === 0) return null;
+  const nowTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  const nextTime = schedules.find(time => time > nowTime) || schedules[0];
+  let nextDate = new Date(now);
+  if (!schedules.find(time => time > nowTime)) {
+    nextDate.setDate(now.getDate() + 1);
+  }
+  const [hours, minutes] = nextTime.split(':');
+  nextDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  return { time: nextTime, date: nextDate };
+}
+
+function generatePalpites(banca, drawTime) {
+  const key = `palpites_${banca}_${drawTime}`;
+  const stored = localStorage.getItem(key);
+  if (stored) return JSON.parse(stored);
+  const palpites = [];
+  for (let i = 0; i < 10; i++) {
+    const milhar = generateMilhar();
+    const animal = getAnimalByMilhar(milhar);
+    palpites.push({ milhar, animal: `${animal.emoji} ${animal.name}` });
+  }
+  localStorage.setItem(key, JSON.stringify(palpites));
+  return palpites;
+}
+
+function shareOnWhatsApp(banca, drawTime, palpites) {
+  const message = `🐔 PALPITES DA MICHELLY\n\nPalpites para ${banca} - ${drawTime}:\n${palpites.map(p => `${p.milhar} - ${p.animal}`).join('\n')}\n\n🍀 Boa sorte!\n🌐 palpite.bancabrasileira.site`;
+  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+}
+
+function displayPalpites() {
+  const bancaSelect = document.getElementById('bancaSelect');
+  const palpiteOutput = document.getElementById('palpiteOutput');
+  const gerarPalpitesBtn = document.getElementById('gerarPalpites');
+
+  const selectedBanca = bancaSelect.value;
+  if (!selectedBanca) {
+    palpiteOutput.style.display = 'block';
+    palpiteOutput.innerHTML = '<p style="color:#dc2626;">Selecione uma banca primeiro.</p>';
+    return;
+  }
+
+  const now = new Date();
+  const nextDraw = getNextDrawTime(selectedBanca, now);
+  if (!nextDraw) {
+    palpiteOutput.style.display = 'block';
+    palpiteOutput.innerHTML = '<p style="color:#dc2626;">Nenhum horário disponível para hoje.</p>';
+    return;
+  }
+
+  const palpites = generatePalpites(selectedBanca, nextDraw.time);
+  palpiteOutput.style.display = 'block';
+  palpiteOutput.innerHTML = `
+    <h3>${selectedBanca} — ${nextDraw.time}</h3>
+    <ul>
+      ${palpites.map(p => `<li><strong>${p.milhar}</strong> — ${p.animal}</li>`).join('')}
+    </ul>
+    <button class="btn-whats" onclick='shareOnWhatsApp("${selectedBanca}", "${nextDraw.time}", ${JSON.stringify(palpites)})'>📲 Compartilhar no WhatsApp</button>
+  `;
+}
+
+function populateAnimalSelect() {
+  const select = document.getElementById('animalSelect');
+  select.innerHTML = '<option value="">Selecione um animal</option>';
+  animals.forEach(animal => {
+    const option = document.createElement('option');
+    option.value = animal.name;
+    option.textContent = `${animal.emoji} ${animal.name}`;
+    select.appendChild(option);
+  });
+}
+
+function handlePuxada() {
+  const select = document.getElementById('animalSelect');
+  const verPuxada = document.getElementById('verPuxada');
+  const puxadaResult = document.getElementById('puxadaResult');
+
+  select.addEventListener('change', () => {
+    verPuxada.style.display = select.value ? 'block' : 'none';
+    puxadaResult.style.display = 'none';
+    puxadaResult.innerHTML = '';
+  });
+
+  verPuxada.addEventListener('click', () => {
+    const animal = select.value;
+    if (!animal) return;
+    const pulls = puxadas[animal] || [];
+    puxadaResult.style.display = 'block';
+    puxadaResult.innerHTML = `
+      <h3>Puxadas para ${animal}</h3>
+      <ul>
+        ${pulls.length 
+          ? pulls.map(pull => {
+              const a = animals.find(x => x.name === pull);
+              return `<li>${a ? a.emoji : ''} ${pull}</li>`;
+            }).join('') 
+          : '<li>Nenhuma puxada disponível.</li>'}
+      </ul>
+    `;
+  });
+}
+
+// Inicialização das novas funções
+document.addEventListener('DOMContentLoaded', () => {
+  const bancaSelect = document.getElementById('bancaSelect');
+  const gerarPalpitesBtn = document.getElementById('gerarPalpites');
+
+  bancaSelect.addEventListener('change', () => {
+    document.getElementById('palpiteOutput').style.display = 'none';
+    gerarPalpitesBtn.disabled = !bancaSelect.value;
+  });
+
+  gerarPalpitesBtn.addEventListener('click', displayPalpites);
+
+  populateAnimalSelect();
+  handlePuxada();
+});
 </script>
 </body>
 </html>
